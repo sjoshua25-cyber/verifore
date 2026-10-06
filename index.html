@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VERIFORE — Forensic Bloodstain Pattern Analysis Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --card-bg: #ffffff;
+      --navy-dark: #0f172a;
+      --navy-deep: #1e293b;
+      --crimson: #991b1b;
+      --crimson-light: #b91c1c;
+      --burgundy: #831843;
+      --amber: #d97706;
+      --emerald: #059669;
+      --blue: #2563eb;
+      --blue-subtle: #dbeafe;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-light: #64748b;
+      --border: #cbd5e1;
+      --border-subtle: #e2e8f0;
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* Top Department Header with Rich Deep Gradient */
+    header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #4c0519 100%);
+      color: #ffffff;
+      padding: 14px 28px;
+      border-bottom: 3px solid #991b1b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .brand-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #b91c1c 0%, #881337 100%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+
+    .brand-top {
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #fca5a5;
+      font-weight: 700;
+    }
+
+    .brand-name {
+      font-size: 17px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.2px;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    nav button {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #f8fafc;
+      padding: 7px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    nav button:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+    }
+
+    nav button.btn-logout {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #fecaca;
+    }
+
+    nav button.btn-logout:hover {
+      background: #b91c1c;
+      color: #ffffff;
+    }
+
+    /* Main Container */
+    main {
+      max-width: 1160px;
+      margin: 28px auto;
+      padding: 0 20px 48px;
+    }
+
+    h1 { font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+    h2 { font-size: 20px; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
+    h3 { font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 12px; }
+
+    /* Sections and Cards with Crisp Borders and Soft Colored Accents */
+    section, .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .section-header-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .section-tag {
+      display: inline-block;
+      width: 4px;
+      height: 18px;
+      border-radius: 2px;
+      background: #b91c1c;
+    }
+
+    /* Grid Layouts */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 4px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      color: var(--text-main);
+      font: inherit;
+      font-size: 13.5px;
+      padding: 9px 12px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    /* Modernized Buttons: Pill/Smooth Rounded Shape with Interactive Hover Effects */
+    button.p, button.p-crimson, button.p-green, button.s, button.btn-danger {
+      padding: 10px 22px;
+      border-radius: 50px;
+      font: inherit;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 4px 6px 4px 0;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid transparent;
+      user-select: none;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      position: relative;
+    }
+
+    button.p {
+      background: #1d4ed8;
+      color: #ffffff;
+      border-color: #1e40af;
+    }
+
+    button.p:hover {
+      background: #2563eb;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(29, 78, 216, 0.25);
+    }
+
+    button.p:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(29, 78, 216, 0.2);
+    }
+
+    button.p-crimson {
+      background: #b91c1c;
+      color: #ffffff;
+      border-color: #991b1b;
+    }
+
+    button.p-crimson:hover {
+      background: #dc2626;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(185, 28, 28, 0.28);
+    }
+
+    button.p-crimson:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(185, 28, 28, 0.2);
+    }
+
+    button.p-green {
+      background: #059669;
+      color: #ffffff;
+      border-color: #047857;
+    }
+
+    button.p-green:hover {
+      background: #10b981;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(5, 150, 105, 0.25);
+    }
+
+    button.p-green:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
+    }
+
+    button.s {
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      color: #334155;
+    }
+
+    button.s:hover {
+      background: #f1f5f9;
+      border-color: #64748b;
+      color: #0f172a;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    button.s:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    button.btn-danger {
+      background: #fee2e2;
+      border: 1px solid #fca5a5;
+      color: #991b1b;
+      border-radius: 50px;
+    }
+
+    button.btn-danger:hover {
+      background: #dc2626;
+      border-color: #b91c1c;
+      color: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+    }
+
+    button.btn-danger:active {
+      transform: translateY(0);
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      margin: 12px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      background: #ffffff;
+    }
+
+    th, td {
+      padding: 10px 14px;
+      font-size: 13px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    th {
+      background: #f8fafc;
+      color: #334155;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 11.5px;
+      letter-spacing: 0.5px;
+    }
+
+    tr:hover td {
+      background: #f1f5f9;
+    }
+
+    /* Badges with Distinct Colors */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      border: 1px solid transparent;
+    }
+
+    .badge-Draft { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+    .badge-Submitted { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
+    .badge-Under-Review, .badge-Under_Review { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+    .badge-Analysis-in-Progress { background: #fae8ff; color: #86198f; border-color: #f0abfc; }
+    .badge-Analysis-Completed, .badge-Report-Generated { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+    .badge-Archived { background: #f1f5f9; color: #64748b; border-color: #cbd5e1; }
+
+    /* Rich Color Coded Metric Cards */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .stat-box {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px 18px;
+      border-top: 4px solid var(--accent-col, #2563eb);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    }
+
+    .stat-box.theme-blue { --accent-col: #2563eb; }
+    .stat-box.theme-crimson { --accent-col: #b91c1c; }
+    .stat-box.theme-amber { --accent-col: #d97706; }
+    .stat-box.theme-purple { --accent-col: #7c3aed; }
+    .stat-box.theme-emerald { --accent-col: #059669; }
+    .stat-box.theme-slate { --accent-col: #64748b; }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-top: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Colored Information & Notification Boxes */
+    .note {
+      background: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      border-radius: 0 6px 6px 0;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #92400e;
+      margin: 14px 0;
+    }
+
+    .info-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-left: 4px solid #2563eb;
+      border-radius: 0 6px 6px 0;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #1e40af;
+      margin: 14px 0;
+    }
+
+    .err {
+      color: #991b1b;
+      background: #fee2e2;
+      border: 1px solid #fca5a5;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 12px 0;
+      display: none;
+    }
+    .err:not(:empty) {
+      display: block;
+    }
+
+    /* Sign In Card with Crimson Brand Stripe */
+    .login-wrapper {
+      max-width: 460px;
+      margin: 48px auto;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+    }
+
+    .login-top-bar {
+      background: linear-gradient(135deg, #1e1b4b 0%, #831843 100%);
+      padding: 24px 28px;
+      color: #ffffff;
+      text-align: center;
+    }
+
+    .login-top-bar h1 {
+      color: #ffffff;
+      font-size: 20px;
+      margin: 0;
+    }
+
+    .login-top-bar p {
+      color: #fbcfe8;
+      font-size: 12.5px;
+      margin-top: 4px;
+    }
+
+    .login-body {
+      padding: 28px 24px;
+    }
+
+    .role-toggle {
+      display: flex;
+      background: #e2e8f0;
+      border-radius: 6px;
+      padding: 4px;
+      gap: 4px;
+      margin: 8px 0 16px;
+    }
+
+    .role-option {
+      flex: 1;
+      text-align: center;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #475569;
+      cursor: pointer;
+      border-radius: 5px;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+
+    .role-option.active {
+      background: #1e40af;
+      color: #ffffff;
+      box-shadow: 0 2px 4px rgba(30, 64, 175, 0.2);
+    }
+
+    .role-option[data-role="admin"].active {
+      background: #991b1b;
+      box-shadow: 0 2px 4px rgba(153, 27, 27, 0.2);
+    }
+
+    .credentials-hint {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-left: 3px solid #1e40af;
+      border-radius: 6px;
+      padding: 12px 14px;
+      margin-top: 18px;
+      font-size: 12.5px;
+      color: #334155;
+    }
+
+    .credentials-hint code {
+      background: #e2e8f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #0f172a;
+      font-weight: 600;
+    }
+
+    /* Pattern Observation Checkboxes */
+    .chk {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .chk label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #1e293b;
+      cursor: pointer;
+      margin-bottom: 0;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .chk label:hover {
+      background: #eff6ff;
+      border-color: #93c5fd;
+    }
+
+    .chk input[type="checkbox"] {
+      width: 17px;
+      height: 17px;
+      margin-top: 2px;
+      accent-color: #1e40af;
+    }
+
+    /* Photo Upload Area */
+    #drop {
+      border: 2px dashed #93c5fd;
+      border-radius: 8px;
+      background: #f0f7ff;
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      color: #1e40af;
+      margin: 12px 0;
+      transition: all 0.15s ease;
+    }
+
+    #drop:hover {
+      background: #e0f2fe;
+      border-color: #2563eb;
+    }
+
+    .thumbs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .thumbs figure {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 8px;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .thumbs img {
+      height: 110px;
+      border-radius: 4px;
+      object-fit: cover;
+      display: block;
+      margin: 0 auto;
+    }
+
+    /* Confirmation Modal */
+    dialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 24px 28px;
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.2);
+      max-width: 420px;
+      width: 90%;
+    }
+
+    dialog::backdrop {
+      background: rgba(15, 23, 42, 0.6);
+    }
+
+    dialog p {
+      font-size: 14px;
+      margin-bottom: 20px;
+      color: #0f172a;
+      line-height: 1.5;
+    }
+
+    .empty {
+      padding: 32px 20px;
+      text-align: center;
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    /* Print Format */
+    @media print {
+      body { background: #ffffff !important; color: #000000 !important; }
+      header, button, .noprint, nav { display: none !important; }
+      section, .card { border: none !important; box-shadow: none !important; padding: 0 !important; margin-bottom: 16px !important; }
+      table, th, td { border: 1px solid #888888 !important; color: #000000 !important; }
+      th { background: #f0f0f0 !important; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand" onclick="go('dash')">
+      <div class="brand-badge">🩸</div>
+      <div>
+        <div class="brand-top">Forensic Science Laboratory</div>
+        <div class="brand-name">VERIFORE <span style="font-weight:400; font-size:13px; opacity:0.85;">| BPA Platform</span></div>
+      </div>
+    </div>
+    <nav id="nav"></nav>
+  </header>
+
+  <main id="app"></main>
+
+  <script>
+    const $ = s => document.querySelector(s);
+    const app = $('#app');
+    const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+    const PAT = [
+      ['Passive', 'Produced primarily by gravity acting alone.'],
+      ['Transfer', 'Blood-bearing surface contacts another surface.'],
+      ['Swipe', 'Blood-bearing surface moves across another surface.'],
+      ['Wipe', 'Object moves through an existing wet stain.'],
+      ['Cast-Off', 'Blood released from a moving blood-bearing object.'],
+      ['Projected', 'Blood distributed through force or movement.'],
+      ['Arterial', 'Blood from an injured artery; may show pulsatile characteristics.'],
+      ['Expirated', 'Blood expelled from mouth or respiratory tract.'],
+      ['Drip Trail', 'A moving blood source releases a series of drops.'],
+      ['Pool', 'Blood accumulates at a location.'],
+      ['Satellite Stains', 'Small secondary droplets around a larger parent stain.'],
+      ['Spines', 'Pointed projections from the edge of a stain.'],
+      ['Other / Undetermined', 'Undetermined / Insufficient Evidence. Do not force a classification.']
+    ];
+
+    const CATS = ['Overall Scene', 'Mid-Range', 'Close-Up', 'Scale Photograph', 'Bloodstain Pattern', 'Individual Stain', 'Surface', 'Other Evidence'];
+    const STAT = ['Draft', 'Submitted', 'Under Review', 'Analysis in Progress', 'Additional Information Required', 'Analysis Completed', 'Report Generated', 'Archived'];
+    const DISC = 'Bloodstain Pattern Analysis provides interpretation of physical evidence. Pattern interpretation alone does not establish the identity of a person, exact weapon, exact sequence of actions, intention, guilt, or innocence. Conclusions must be considered together with other forensic evidence.';
+
+    let me = null;
+
+    async function api(u, o = {}) {
+      const isFormData = o.body instanceof FormData;
+      const r = await fetch(u, {
+        headers: isFormData ? {} : { 'Content-Type': 'application/json' },
+        ...o,
+        body: isFormData ? o.body : (o.body && JSON.stringify(o.body))
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.status === 401 && me) {
+        me = null;
+        go('login');
+      }
+      if (!r.ok) throw new Error(d.error || 'Request failed.');
+      return d;
+    }
+
+    const angle = (l, w) => (l > 0 && w > 0 && w <= l) ? Math.asin(w / l) * 180 / Math.PI : null;
+
+    const dlg = m => new Promise(r => {
+      const d = document.createElement('dialog');
+      d.innerHTML = `
+        <p><strong>Confirmation Required</strong></p>
+        <p>${esc(m)}</p>
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+          <button class="s" id="dlg-cancel">Cancel</button>
+          <button class="p" id="dlg-confirm">Confirm Action</button>
+        </div>
+      `;
+      document.body.append(d);
+      d.showModal();
+      $('#dlg-confirm').onclick = () => { r(true); d.close(); d.remove(); };
+      $('#dlg-cancel').onclick = () => { r(false); d.close(); d.remove(); };
+    });
+
+    function nav() {
+      const a = me?.role === 'admin';
+      $('#nav').innerHTML = me ? `
+        <button onclick="go('dash')">📊 Dashboard</button>
+        ${a ? `
+          <button onclick="go('audit')">📜 Audit Trail</button>
+          <button onclick="go('ref')">📘 Pattern Standards</button>
+        ` : `
+          <button onclick="go('new')">➕ New Submission</button>
+        `}
+        <button class="btn-logout" onclick="logout()">🚪 Sign Out (${esc(me.username)})</button>
+      ` : '';
+    }
+
+    async function logout() {
+      if (await dlg('Are you sure you want to log out of the system?')) {
+        await api('/api/logout', { method: 'POST' });
+        me = null;
+        go('login');
+      }
+    }
+
+    function go(v, a) {
+      nav();
+      ({ login, register, dash, new: newCase, case: caseView, audit, ref, report })[v](a);
+    }
+
+    function login(selectedRole = 'user') {
+      app.innerHTML = `
+        <div class="login-wrapper">
+          <div class="login-top-bar">
+            <h1>VERIFORE</h1>
+            <p>Digital Forensic Evidence &amp; BPA Reconstructive System</p>
+          </div>
+
+          <div class="login-body">
+            <label>Select Portal Access Role</label>
+            <div class="role-toggle" id="roleToggle">
+              <div class="role-option ${selectedRole === 'user' ? 'active' : ''}" data-role="user" onclick="switchRole('user')">👤 Investigator</div>
+              <div class="role-option ${selectedRole === 'admin' ? 'active' : ''}" data-role="admin" onclick="switchRole('admin')">🛡️ Analyst / Admin</div>
+            </div>
+            <input type="hidden" id="role" value="${selectedRole}">
+
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <div>
+                <label for="u">Username or Email</label>
+                <input id="u" autocomplete="username" placeholder="Enter username or email address">
+              </div>
+              <div>
+                <label for="p">Password</label>
+                <input id="p" type="password" autocomplete="current-password" placeholder="Enter password">
+              </div>
+            </div>
+
+            <div class="err" id="e" role="alert"></div>
+
+            <div style="margin-top:20px; display:flex; flex-direction:column; gap:8px;">
+              <button class="p" id="go" style="width:100%; padding:10px; font-size:14px;">Sign In</button>
+              <button class="s" onclick="register()" style="width:100%;">Create Investigator Account</button>
+            </div>
+
+            <div class="credentials-hint">
+              <strong style="color:#0f172a;">Quick Access Credentials:</strong>
+              <div style="margin-top:6px;"><strong>Analyst / Admin:</strong> <code>admin</code> / <code>Admin@123</code></div>
+              <div style="margin-top:3px;"><strong>Analyst / Admin:</strong> <code>superadmin</code> / <code>admin123</code></div>
+              <div style="margin-top:3px;"><strong>Investigator:</strong> <code>demo_user</code> / <code>Demo@123</code></div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      window.switchRole = (r) => {
+        $('#role').value = r;
+        document.querySelectorAll('.role-option').forEach(el => {
+          el.classList.toggle('active', el.dataset.role === r);
+        });
+      };
+
+      $('#go').onclick = async () => {
+        try {
+          me = await api('/api/login', {
+            method: 'POST',
+            body: { username: $('#u').value.trim(), password: $('#p').value, role: $('#role').value }
+          });
+          go('dash');
+        } catch (x) {
+          $('#e').textContent = x.message;
+        }
+      };
+
+      $('#p').onkeydown = (e) => {
+        if (e.key === 'Enter') $('#go').click();
+      };
+    }
+
+    function register() {
+      app.innerHTML = `
+        <div class="login-wrapper" style="max-width: 560px;">
+          <div class="login-top-bar">
+            <h1>Register Investigator</h1>
+            <p>Create credentials for forensic evidence upload</p>
+          </div>
+
+          <div class="login-body">
+            <form id="f" class="grid" style="grid-template-columns: 1fr 1fr;">
+              ${[
+                ['full_name', 'Full Name'],
+                ['email', 'Official Email'],
+                ['mobile', 'Phone Number'],
+                ['username', 'Username'],
+                ['institution', 'Agency / Department'],
+                ['user_type', 'Investigator Title'],
+                ['id_number', 'Badge / ID Number (Optional)']
+              ].map(([k, l]) => `<div><label>${l}</label><input name="${k}" required></div>`).join('')}
+              <div><label>Password</label><input name="password" type="password" required></div>
+              <div><label>Confirm Password</label><input name="c" type="password" required></div>
+            </form>
+
+            <div class="err" id="e" role="alert"></div>
+
+            <div style="margin-top:20px; display:flex; gap:8px;">
+              <button class="p" id="r" style="flex:1;">Submit Registration</button>
+              <button class="s" onclick="login()">Back to Sign In</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      $('#r').onclick = async () => {
+        const b = Object.fromEntries(new FormData($('#f')));
+        if (b.password !== b.c) return $('#e').textContent = 'Passwords do not match.';
+        try {
+          await api('/api/register', { method: 'POST', body: b });
+          login('user');
+        } catch (x) {
+          $('#e').textContent = x.message;
+        }
+      };
+    }
+
+    async function dash() {
+      const cs = await api('/api/cases');
+      const a = me.role === 'admin';
+      const n = s => cs.filter(c => s.includes(c.status)).length;
+
+      const cards = a ? [
+        ['Total Cases', cs.length, 'theme-blue'],
+        ['New Submissions', n(['Submitted']), 'theme-crimson'],
+        ['Under Review', n(['Under Review']), 'theme-amber'],
+        ['In Progress', n(['Analysis in Progress']), 'theme-purple'],
+        ['Completed Cases', n(['Analysis Completed', 'Report Generated']), 'theme-emerald'],
+        ['Archived', n(['Archived']), 'theme-slate']
+      ] : [
+        ['Total Submissions', cs.length, 'theme-blue'],
+        ['Draft Cases', n(['Draft']), 'theme-slate'],
+        ['Awaiting Review', n(['Submitted']), 'theme-crimson'],
+        ['Under Examination', n(['Under Review', 'Analysis in Progress']), 'theme-amber'],
+        ['Finalized Reports', n(['Analysis Completed', 'Report Generated']), 'theme-emerald']
+      ];
+
+      app.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+          <div>
+            <h2>${a ? '🛡️ Forensic Analyst Oversight Dashboard' : '📋 Investigator Evidence Dashboard'}</h2>
+            <p style="color:var(--text-muted); font-size:13px;">Logged in as: <strong>${esc(me.name || me.username)}</strong></p>
+          </div>
+          ${!a ? `<button class="p-crimson" onclick="go('new')">➕ Start New Case Submission</button>` : ''}
+        </div>
+
+        <div class="stats-row">
+          ${cards.map(([l, v, th]) => `
+            <div class="stat-box ${th}">
+              <div class="stat-label">${l}</div>
+              <div class="stat-value">${v}</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <section>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+            <div class="section-header-bar" style="margin-bottom:0; border:none; padding:0;">
+              <span class="section-tag"></span>
+              <h3 style="margin:0;">Registered Case Files</h3>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <input id="q" placeholder="🔍 Search case ID, reference, pattern..." style="width:260px;">
+              <select id="st" style="width:170px;">
+                <option value="">All Statuses</option>
+                ${STAT.map(s => `<option value="${s}">${s}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div id="tb"></div>
+        </section>
+      `;
+
+      const draw = () => {
+        const q = ($('#q')?.value || '').toLowerCase();
+        const st = $('#st')?.value || '';
+        const r = cs.filter(c => 
+          (!st || c.status === st) &&
+          (c.case_id + (c.submitter || '') + (c.info?.incidentRef || '') + (c.patterns?.join(' ') || '')).toLowerCase().includes(q)
+        );
+
+        $('#tb').innerHTML = r.length ? `
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Case File ID</th>
+                  <th>Incident Ref</th>
+                  <th>Date Created</th>
+                  ${a ? '<th>Investigator / Agency</th>' : ''}
+                  <th>Pattern(s)</th>
+                  <th>Status</th>
+                  <th>Last Update</th>
+                  <th style="text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${r.map(c => `
+                  <tr>
+                    <td><strong style="color:#1e3a8a;">${esc(c.case_id)}</strong>${c.is_sample ? ' <span class="badge" style="background:#e0f2fe; color:#0369a1;">SAMPLE</span>' : ''}</td>
+                    <td><strong>${esc(c.info?.incidentRef || '—')}</strong></td>
+                    <td>${c.created.slice(0, 10)}</td>
+                    ${a ? `<td>${esc(c.submitter || '—')}</td>` : ''}
+                    <td>${esc((c.patterns || []).join(', ') || '—')}</td>
+                    <td><span class="badge badge-${c.status.replace(/\s+/g, '-')}">${c.status}</span></td>
+                    <td>${c.updated.slice(0, 10)}</td>
+                    <td style="text-align:right; white-space:nowrap;">
+                      <button class="s" style="padding:4px 10px; font-size:12px;" onclick="go('case','${c.case_id}')">
+                        ${a ? 'Analyze Case' : (c.status === 'Draft' ? 'Edit Draft' : 'View File')}
+                      </button>
+                      ${['Analysis Completed', 'Report Generated', 'Under Review', 'Analysis in Progress'].includes(c.status) ? `
+                        <button class="p-crimson" style="padding:4px 10px; font-size:12px;" onclick="go('report','${c.case_id}')" title="View & Download Official PDF Report">
+                          📄 PDF Report
+                        </button>
+                      ` : ''}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        ` : `
+          <div class="empty">
+            <p>No matching case records found.</p>
+          </div>
+        `;
+      };
+
+      draw();
+      $('#q').oninput = draw;
+      $('#st').onchange = draw;
+    }
+
+    const F = (k, l, v = '', t = 'input') => `
+      <div>
+        <label>${l}</label>
+        ${t === 'ta' 
+          ? `<textarea name="${k}" rows="3" placeholder="Enter details...">${esc(v)}</textarea>` 
+          : `<input name="${k}" value="${esc(v)}" ${t === 'date' ? 'type="date"' : ''} placeholder="Enter ${l.toLowerCase()}...">`}
+      </div>
+    `;
+
+    function newCase() {
+      caseForm({ info: {}, scene: {}, stains: [], patterns: [], images: [] });
+    }
+
+    function caseForm(c) {
+      const i = c.info || {}, s = c.scene || {};
+      app.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <div>
+            <h2>${c.case_id ? `Case: ${c.case_id}` : 'Digital Evidence Submission'}</h2>
+            <p style="color:var(--text-muted); font-size:13px;">Document crime scene bloodstain patterns and upload evidence photographs</p>
+          </div>
+          <button class="s" onclick="go('dash')">← Back to Dashboard</button>
+        </div>
+
+        <form id="f">
+          <section>
+            <div class="section-header-bar">
+              <span class="section-tag"></span>
+              <h3 style="margin:0;">1. Case &amp; Incident Information</h3>
+            </div>
+            <div class="grid">
+              ${F('incidentRef', 'Incident Reference / FIR No.', i.incidentRef)}
+              ${F('examDate', 'Scene Examination Date', i.examDate, 'date')}
+              ${F('examTime', 'Examination Time', i.examTime)}
+              ${F('location', 'Crime Scene Location', i.location)}
+            </div>
+            <div style="margin-top:14px; display:flex; flex-direction:column; gap:12px;">
+              ${F('sceneDesc', 'General Scene Description', i.sceneDesc, 'ta')}
+              ${F('evidenceDescription', 'Substrate / Evidence Description', i.evidenceDescription, 'ta')}
+              ${F('notes', 'Additional Case Notes', i.notes, 'ta')}
+            </div>
+          </section>
+
+          <section>
+            <div class="section-header-bar">
+              <span class="section-tag" style="background:#2563eb;"></span>
+              <h3 style="margin:0;">2. Surface &amp; Environmental Conditions</h3>
+            </div>
+            <div class="grid">
+              <div>
+                <label>Surface Substrate Material</label>
+                <select name="material">
+                  ${['Glass', 'Metal', 'Smooth Tile', 'Concrete', 'Rough Wood', 'Textured Wall', 'Cloth', 'Paper', 'Untreated Wood', 'Other'].map(o => `<option ${s.material === o ? 'selected' : ''}>${o}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label>Surface Texture &amp; Porosity</label>
+                <select name="texture">
+                  ${['Smooth', 'Rough', 'Porous', 'Non-porous', 'Textured', 'Unknown'].map(o => `<option ${s.texture === o ? 'selected' : ''}>${o}</option>`).join('')}
+                </select>
+              </div>
+              ${F('orientation', 'Surface Orientation (Vertical / Horizontal)', s.orientation)}
+              ${F('lighting', 'Scene Lighting Conditions', s.lighting)}
+              ${F('environment', 'Environmental Conditions (Temp / Humidity)', s.environment)}
+              ${F('measurements', 'Scene Room Measurements', s.measurements)}
+            </div>
+            <div style="margin-top:14px;">
+              ${F('stainLocation', 'Exact Location of Bloodstains on Substrate', s.stainLocation, 'ta')}
+            </div>
+          </section>
+
+          <section>
+            <div class="section-header-bar">
+              <span class="section-tag" style="background:#059669;"></span>
+              <h3 style="margin:0;">3. Observed Bloodstain Patterns</h3>
+            </div>
+            <div class="chk" id="pats">
+              ${PAT.map(([n, d]) => `
+                <label title="${esc(d)}">
+                  <input type="checkbox" value="${n}" ${(c.patterns || []).includes(n) ? 'checked' : ''}>
+                  <div>
+                    <strong>${n}</strong>
+                    <div style="font-size:11.5px; color:#64748b; margin-top:2px;">${esc(d)}</div>
+                  </div>
+                </label>
+              `).join('')}
+            </div>
+          </section>
+        </form>
+
+        <section>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div class="section-header-bar" style="margin-bottom:0; border:none; padding:0;">
+              <span class="section-tag" style="background:#d97706;"></span>
+              <h3 style="margin:0;">4. Geometric Stain Measurements</h3>
+            </div>
+            <button class="s" type="button" id="add">➕ Add Stain Row</button>
+          </div>
+          <div class="table-container">
+            <table id="st">
+              <thead>
+                <tr>
+                  <th>Stain ID</th>
+                  <th>Length (L)</th>
+                  <th>Width (W)</th>
+                  <th>Unit</th>
+                  <th>Shape</th>
+                  <th>Feature</th>
+                  <th>Impact Angle θ = sin⁻¹(W/L)</th>
+                  <th style="width:40px;"></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="info-box">
+            <strong>Calculation:</strong> θ = sin⁻¹(W / L). Width must be less than or equal to length.
+          </div>
+        </section>
+
+        <section>
+          <div class="section-header-bar">
+            <span class="section-tag" style="background:#7c3aed;"></span>
+            <h3 style="margin:0;">5. Scaled Photographic Evidence</h3>
+          </div>
+          <div style="max-width:280px; margin-bottom:10px;">
+            <label>Photo Classification Category</label>
+            <select id="cat">
+              ${CATS.map(o => `<option>${o}</option>`).join('')}
+            </select>
+          </div>
+          <div id="drop" tabindex="0">
+            <div style="font-size:24px; margin-bottom:4px;">📷</div>
+            <p><strong>Click to browse files</strong> or drag-and-drop evidence photographs here (JPG, PNG, WebP up to 15 MB)</p>
+            <input type="file" id="fi" multiple accept="image/jpeg,image/png,image/webp" style="display:none;">
+          </div>
+          <div class="thumbs" id="th"></div>
+        </section>
+
+        <div class="err" id="e" role="alert"></div>
+
+        <div style="display:flex; gap:10px; margin-top:24px;">
+          <button class="s" id="save">💾 Save Draft</button>
+          <button class="p-crimson" id="sub">🚀 Submit Case for Analyst Review</button>
+          <button class="s" onclick="go('dash')">Cancel</button>
+        </div>
+      `;
+
+      const tbody = $('#st').querySelector('tbody');
+      const rows = (c.stains && c.stains.length) ? c.stains : [{}];
+
+      const addRow = r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input value="${esc(r.id || 'S' + (tbody.rows.length + 1))}" style="width:80px; font-weight:700;"></td>
+          <td><input type="number" min="0" step="any" value="${r.length || ''}" placeholder="Length"></td>
+          <td><input type="number" min="0" step="any" value="${r.width || ''}" placeholder="Width"></td>
+          <td>
+            <select>
+              ${['mm', 'cm', 'inches'].map(u => `<option ${r.unit === u ? 'selected' : ''}>${u}</option>`).join('')}
+            </select>
+          </td>
+          <td>
+            <select>
+              ${['Circular', 'Elliptical', 'Irregular', 'Other'].map(u => `<option ${r.shape === u ? 'selected' : ''}>${u}</option>`).join('')}
+            </select>
+          </td>
+          <td>
+            <select>
+              ${['Parent Stain', 'Satellite Stain', 'Spine', 'Other'].map(u => `<option ${r.feature === u ? 'selected' : ''}>${u}</option>`).join('')}
+            </select>
+          </td>
+          <td class="a" style="font-family:'JetBrains Mono', monospace; font-weight:700; color:#1e40af;">—</td>
+          <td><button type="button" class="btn-danger" style="padding:2px 8px; font-size:12px;">✕</button></td>
+        `;
+
+        const upd = () => {
+          const [l, w] = [...tr.querySelectorAll('input')].slice(1, 3).map(x => parseFloat(x.value));
+          const a = angle(l, w);
+          tr.querySelector('.a').textContent = a ? `${a.toFixed(1)}°` : (l && w && w > l ? 'W > L (Error)' : '—');
+        };
+
+        tr.oninput = upd;
+        tr.querySelector('button').onclick = () => tr.remove();
+        tbody.append(tr);
+        upd();
+      };
+
+      rows.forEach(addRow);
+      $('#add').onclick = () => addRow({});
+
+      const files = [];
+      const addF = async fs => {
+        for (const f of fs) {
+          if (!/^image\/(jpeg|png|webp)$/.test(f.type) || f.size > 15 * 2 ** 20) {
+            $('#e').textContent = `Invalid file format or size: ${f.name}. Use JPG, PNG or WebP under 15 MB.`;
+            continue;
+          }
+          const url = URL.createObjectURL(f);
+          const im = new Image();
+          await new Promise(res => { im.onload = res; im.src = url; });
+          files.push({ f, dim: `${im.naturalWidth}x${im.naturalHeight}`, cat: $('#cat').value });
+          $('#th').insertAdjacentHTML('beforeend', `
+            <figure>
+              <img src="${url}" alt="${esc(f.name)}">
+              <figcaption style="font-size:11px; margin-top:4px; color:#475569;">${esc(f.name)}</figcaption>
+            </figure>
+          `);
+        }
+      };
+
+      $('#drop').onclick = () => $('#fi').click();
+      $('#fi').onchange = e => addF(e.target.files);
+      $('#drop').ondragover = e => e.preventDefault();
+      $('#drop').ondrop = e => { e.preventDefault(); addF(e.dataTransfer.files); };
+
+      const gather = () => {
+        const fd = Object.fromEntries(new FormData($('#f')));
+        const info = {}, scene = {};
+        ['incidentRef', 'examDate', 'examTime', 'location', 'sceneDesc', 'evidenceDescription', 'notes'].forEach(k => info[k] = fd[k]);
+        ['material', 'texture', 'orientation', 'lighting', 'environment', 'measurements', 'stainLocation'].forEach(k => scene[k] = fd[k]);
+        const stains = [...tbody.rows].map(tr => {
+          const v = [...tr.querySelectorAll('input,select')];
+          return { id: v[0].value, length: +v[1].value, width: +v[2].value, unit: v[3].value, shape: v[4].value, feature: v[5].value };
+        });
+        return {
+          info,
+          scene,
+          stains,
+          patterns: [...document.querySelectorAll('#pats input:checked')].map(x => x.value)
+        };
+      };
+
+      const persist = async () => {
+        const b = gather();
+        if (!b.info.incidentRef || !b.info.location) throw new Error('Incident reference and scene location are required.');
+        if (b.stains.some(s => s.length <= 0 || s.width <= 0 || s.width > s.length)) {
+          throw new Error('All stain measurements must be positive numbers, with width ≤ length.');
+        }
+        const id = c.case_id || (await api('/api/cases', { method: 'POST', body: b })).case_id;
+        c.case_id = id;
+        await api('/api/cases/' + id, { method: 'PUT', body: b });
+        for (const cat of CATS) {
+          const g = files.filter(x => x.cat === cat);
+          if (!g.length) continue;
+          const fd = new FormData();
+          fd.append('category', cat);
+          g.forEach(x => { fd.append('images', x.f); fd.append('dims', x.dim); });
+          await api(`/api/cases/${id}/images`, { method: 'POST', body: fd });
+        }
+        files.length = 0;
+        return id;
+      };
+
+      $('#save').onclick = async () => {
+        try {
+          await persist();
+          go('dash');
+        } catch (x) {
+          $('#e').textContent = x.message;
+        }
+      };
+
+      $('#sub').onclick = async () => {
+        try {
+          if (!await dlg('Submit this case? Once submitted, it will be locked for analyst review.')) return;
+          const b = gather();
+          if (!b.patterns.length) throw new Error('Select at least one pattern classification.');
+          const id = await persist();
+          await api(`/api/cases/${id}/submit`, { method: 'POST' });
+          go('dash');
+        } catch (x) {
+          $('#e').textContent = x.message;
+        }
+      };
+    }
+
+    async function caseView(id) {
+      const c = await api('/api/cases/' + id);
+      const a = me.role === 'admin';
+      const an = c.analysis || {};
+
+      if (!a && c.status === 'Draft') return caseForm(c);
+
+      const imgs = (c.images || []).map(i => `
+        <figure>
+          <a href="/api/images/${i.id}" target="_blank">
+            <img loading="lazy" src="/api/images/${i.id}" alt="${esc(i.original_name)}">
+          </a>
+          <figcaption style="font-size:11px; margin-top:4px; color:#475569;">
+            <strong style="color:#0f172a;">${esc(i.category)}</strong><br>
+            ${esc(i.original_name)}<br>
+            ${i.width}×${i.height} · ${(i.size / 1024).toFixed(0)} KB
+          </figcaption>
+        </figure>
+      `).join('') || '<div class="empty">No photographs attached to this case.</div>';
+
+      app.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+          <div>
+            <h2>Case ${esc(c.case_id)} <span class="badge badge-${c.status.replace(/\s+/g, '-')}">${c.status}</span></h2>
+            <p style="color:var(--text-muted); font-size:13px;">Created on ${c.created.slice(0, 10)} | Submitter: <strong>${esc(c.submitter || '—')}</strong></p>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="s" onclick="go('dash')">← Dashboard</button>
+            ${['Analysis Completed', 'Report Generated'].includes(c.status) ? `<button class="p-crimson" onclick="go('report','${c.case_id}')">📑 View Official BPA Report</button>` : ''}
+          </div>
+        </div>
+
+        <section>
+          <div class="section-header-bar">
+            <span class="section-tag"></span>
+            <h3 style="margin:0;">Incident &amp; Scene Details</h3>
+          </div>
+          <div class="table-container">
+            <table>
+              <tbody>
+                ${Object.entries(c.info || {}).map(([k, v]) => `<tr><th style="width:220px;">${k}</th><td>${esc(v)}</td></tr>`).join('')}
+                ${Object.entries(c.scene || {}).map(([k, v]) => `<tr><th>${k}</th><td>${esc(v)}</td></tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section>
+          <div class="section-header-bar">
+            <span class="section-tag" style="background:#7c3aed;"></span>
+            <h3 style="margin:0;">Photographic Evidence</h3>
+          </div>
+          <div class="thumbs">${imgs}</div>
+        </section>
+
+        <section>
+          <div class="section-header-bar">
+            <span class="section-tag" style="background:#059669;"></span>
+            <h3 style="margin:0;">Classifications &amp; Geometric Measurements</h3>
+          </div>
+          <p style="margin-bottom:12px;"><strong>Observed Patterns:</strong> ${esc((c.patterns || []).join(', ') || 'None')}</p>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Stain ID</th>
+                  <th>Length</th>
+                  <th>Width</th>
+                  <th>Unit</th>
+                  <th>Feature</th>
+                  <th>Impact Angle (θ)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(c.stains || []).map(s => `
+                  <tr>
+                    <td><strong>${esc(s.id)}</strong></td>
+                    <td>${s.length}</td>
+                    <td>${s.width}</td>
+                    <td>${s.unit}</td>
+                    <td>${s.feature}</td>
+                    <td style="font-family:'JetBrains Mono', monospace; font-weight:700; color:#1e40af;">
+                      ${angle(s.length, s.width)?.toFixed(1) ?? '—'}°
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        ${!a && an && Object.keys(an).length ? `
+          <section style="border-top: 4px solid #1e40af; background:#f8fafc;">
+            <div class="section-header-bar" style="border-bottom-color:#bfdbfe;">
+              <span class="section-tag" style="background:#1e40af;"></span>
+              <h3 style="margin:0; color:#1e40af;">🛡️ Forensic Analyst Findings &amp; Reconstructive Assessment</h3>
+            </div>
+            <div class="info-box" style="margin-bottom:16px;">
+              <strong>Analyst Review Status:</strong> Evaluated by <strong>${esc(an.analyst || 'Forensic Expert')}</strong> (Last updated: ${c.updated.slice(0, 10)})
+            </div>
+            <div class="table-container">
+              <table>
+                <tbody>
+                  ${[
+                    ['Directionality', an.direction],
+                    ['Point of Convergence (2D)', an.convergence],
+                    ['Area of Origin (3D)', an.origin],
+                    ['Force & Mechanism', an.mechanism],
+                    ['Reconstruction Summary', an.reconstruction],
+                    ['Final Forensic Interpretation', an.interpretation],
+                    ['Methodological Limitations', an.limitations]
+                  ].filter(([_, v]) => v).map(([l, v]) => `
+                    <tr>
+                      <th style="width:240px; color:#1e3a8a;">${l}</th>
+                      <td style="white-space:pre-wrap; line-height:1.6;">${esc(v)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+            <div style="margin-top:16px;">
+              <button class="p-crimson" onclick="go('report','${c.case_id}')">
+                📥 Download Official BPA Report (PDF)
+              </button>
+            </div>
+          </section>
+        ` : ''}
+
+        ${a ? `
+          <section style="border-top: 4px solid #991b1b; background:#fffcfc;">
+            <div class="section-header-bar" style="border-bottom-color:#fecaca;">
+              <span class="section-tag" style="background:#991b1b;"></span>
+              <h3 style="margin:0; color:#991b1b;">Forensic Analyst Evaluation</h3>
+            </div>
+            <form id="af">
+              <div class="grid" style="margin-bottom:16px;">
+                <div>
+                  <label>Update Case Workflow Status</label>
+                  <select name="status">
+                    ${STAT.map(s => `<option ${s === c.status ? 'selected' : ''}>${s}</option>`).join('')}
+                  </select>
+                </div>
+                ${F('analyst', 'Assigned Analyst Name', an.analyst || me.name)}
+              </div>
+              <div style="display:flex; flex-direction:column; gap:12px;">
+                ${[
+                  ['direction', 'Directionality (Travel vs Flow vectors)'],
+                  ['convergence', 'Point of Convergence (2D coordinates)'],
+                  ['origin', 'Area of Origin (3D coordinates with qualification)'],
+                  ['mechanism', 'Physical Force & Mechanism Deduction'],
+                  ['reconstruction', 'Event Sequence & Reconstructive Notes'],
+                  ['interpretation', 'Final Expert Forensic Interpretation'],
+                  ['limitations', 'Methodology Limitations & Uncertainties']
+                ].map(([k, l]) => F(k, l, an[k], 'ta')).join('')}
+              </div>
+            </form>
+            <div class="note">
+              ${DISC}
+            </div>
+            <div class="err" id="e" role="alert"></div>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+              <button class="s" id="sv">💾 Save Evaluation Draft</button>
+              <button class="p-crimson" id="rp">📑 Finalize &amp; Generate Official Report</button>
+            </div>
+          </section>
+        ` : ''}
+      `;
+
+      if (a) {
+        $('#sv').onclick = async () => {
+          const b = Object.fromEntries(new FormData($('#af')));
+          try {
+            await api('/api/cases/' + id, { method: 'PUT', body: { analysis: b, status: b.status } });
+            go('dash');
+          } catch (x) {
+            $('#e').textContent = x.message;
+          }
+        };
+
+        $('#rp').onclick = async () => {
+          const b = Object.fromEntries(new FormData($('#af')));
+          if (!b.analyst || !b.interpretation || !b.limitations) {
+            return $('#e').textContent = 'Analyst name, final interpretation, and limitations are required to generate an official report.';
+          }
+          if (!await dlg('Generate the official BPA report?')) return;
+          try {
+            await api('/api/cases/' + id, { method: 'PUT', body: { analysis: b, status: 'Report Generated' } });
+            go('report', id);
+          } catch (x) {
+            $('#e').textContent = x.message;
+          }
+        };
+      }
+    }
+
+    async function report(id) {
+      const c = await api('/api/cases/' + id);
+      const an = c.analysis || {};
+      const S = (t, h) => `
+        <div style="margin-bottom:18px; border-bottom:1px solid #e2e8f0; padding-bottom:14px;">
+          <h3 style="font-size:14px; text-transform:uppercase; color:#1e3a8a; letter-spacing:0.5px;">${t}</h3>
+          <div style="font-size:13.5px; line-height:1.6; margin-top:6px;">${h}</div>
+        </div>
+      `;
+
+      app.innerHTML = `
+        <div class="noprint" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+          <button class="s" onclick="go('case','${id}')">← Back to Case</button>
+          <div style="display:flex; gap:8px;">
+            <button class="s" onclick="window.print()">🖨️ Browser Print</button>
+            <button class="p-crimson" id="btn-pdf-download" onclick="downloadReportPdf('${c.case_id}')">
+              📥 Download PDF Report
+            </button>
+          </div>
+        </div>
+
+        <section id="pdf-report-content" style="max-width:860px; margin:auto; background:#ffffff; padding:40px; border:2px solid #cbd5e1; border-top:6px solid #991b1b; color:#0f172a;">
+          <div style="text-align:center; border-bottom:2px solid #0f172a; padding-bottom:18px; margin-bottom:26px;">
+            <div style="font-size:12px; font-weight:800; letter-spacing:1.5px; color:#991b1b; text-transform:uppercase;">Forensic Science Services</div>
+            <h1 style="font-size:22px; margin-top:4px;">VERIFORE — FORENSIC BPA REPORT</h1>
+            <p style="color:var(--text-muted); font-size:12.5px;">Physical Evidence Examination &amp; Reconstructive Interpretation</p>
+          </div>
+
+          ${S('1. Case Identification', `
+            <strong>Case ID:</strong> ${esc(c.case_id)}<br>
+            <strong>Incident Reference:</strong> ${esc(c.info?.incidentRef || '—')}<br>
+            <strong>Workflow Status:</strong> ${esc(c.status)} ${c.is_sample ? '(SAMPLE DEMO)' : ''}
+          `)}
+
+          ${S('2. Submitting Investigator', esc(c.submitter || '—'))}
+
+          ${S('3. Scene Information', `
+            <div class="table-container">
+              <table>
+                ${Object.entries({ ...(c.info || {}), ...(c.scene || {}) }).map(([k, v]) => `<tr><th style="width:220px;">${k}</th><td>${esc(v)}</td></tr>`).join('')}
+              </table>
+            </div>
+          `)}
+
+          ${S('4. Photographs Attached', (c.images || []).map(i => `• <strong>${esc(i.category)}:</strong> ${esc(i.original_name)} (${i.width}×${i.height})`).join('<br>') || 'None registered.')}
+
+          ${S('5. Pattern Classifications', esc((c.patterns || []).join(', ') || 'None'))}
+
+          ${S('6. Geometric Measurements &amp; Angles of Impact', `
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr><th>ID</th><th>Length</th><th>Width</th><th>Calculated Angle (θ)</th></tr>
+                </thead>
+                <tbody>
+                  ${(c.stains || []).map(s => `<tr><td><strong>${esc(s.id)}</strong></td><td>${s.length} ${s.unit}</td><td>${s.width} ${s.unit}</td><td><strong>${angle(s.length, s.width)?.toFixed(1) ?? '—'}°</strong></td></tr>`).join('')}
+                </tbody>
+              </table>
+            </div>
+          `)}
+
+          ${[
+            ['direction', '7. Directionality Determination'],
+            ['convergence', '8. 2D Point of Convergence'],
+            ['origin', '9. 3D Area of Origin Assessment'],
+            ['reconstruction', '10. Reconstructive Notes & Physical Mechanics'],
+            ['interpretation', '11. Final Expert Interpretation'],
+            ['limitations', '12. Methodology Limitations & Uncertainties']
+          ].map(([k, t]) => S(t, esc(an[k] || 'Not recorded.'))).join('')}
+
+          ${S('13. Statutory Disclaimer', `<div style="font-size:12px; color:#475569; font-style:italic;">${DISC}</div>`)}
+
+          ${S('14. Forensic Analyst Certification', `
+            <strong>Certified Analyst:</strong> ${esc(an.analyst || '—')}<br>
+            <strong>Date of Record:</strong> ${c.updated.slice(0, 10)}
+          `)}
+        </section>
+      `;
+    }
+
+    async function downloadReportPdf(caseId) {
+      const el = document.getElementById('pdf-report-content');
+      const btn = document.getElementById('btn-pdf-download');
+      if (!el) return;
+
+      const origText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Generating PDF File...';
+      }
+
+      const filename = `${caseId || 'Case'}-VERIFORE-Forensic-Report.pdf`;
+
+      try {
+        // Strategy 1: Using html2pdf if available
+        if (typeof window.html2pdf === 'function') {
+          const opt = {
+            margin: [8, 8, 10, 8],
+            filename: filename,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, letterRendering: true, logging: false },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+          };
+          await html2pdf().set(opt).from(el).save();
+          return;
+        }
+
+        // Strategy 2: Direct html2canvas + jsPDF blob trigger
+        if (window.html2canvas && (window.jspdf || window.jsPDF)) {
+          const { jsPDF } = window.jspdf || window;
+          const canvas = await html2canvas(el, { scale: 2, useCORS: true, logging: false });
+          const imgData = canvas.toDataURL('image/jpeg', 0.95);
+          const pdf = new jsPDF('p', 'mm', 'a4');
+          const pdfWidth = pdf.internal.pageSize.getWidth();
+          const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+          
+          let heightLeft = pdfHeight;
+          let position = 0;
+          const pageHeight = pdf.internal.pageSize.getHeight();
+
+          pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+          heightLeft -= pageHeight;
+
+          while (heightLeft > 0) {
+            position = heightLeft - pdfHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+            heightLeft -= pageHeight;
+          }
+
+          pdf.save(filename);
+          return;
+        }
+
+        // Strategy 3: Standard window.print() if script blocked
+        window.print();
+      } catch (err) {
+        console.warn('PDF generation fallback triggered:', err);
+        window.print();
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origText;
+        }
+      }
+    }
+
+    async function audit() {
+      const r = await api('/api/audit');
+      app.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+          <h2>📜 System Audit Trail</h2>
+          <button class="s" onclick="go('dash')">← Dashboard</button>
+        </div>
+        <section>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Timestamp (UTC)</th>
+                  <th>User / Actor</th>
+                  <th>Action Executed</th>
+                  <th>Associated Case</th>
+                  <th>Context Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${r.map(x => `
+                  <tr>
+                    <td style="font-family:'JetBrains Mono', monospace; font-size:12px; color:#475569;">${x.at.replace('T', ' ').slice(0, 19)}</td>
+                    <td><strong>${esc(x.actor)}</strong></td>
+                    <td><span class="badge" style="background:#eff6ff; color:#1e40af; border-color:#bfdbfe;">${esc(x.action)}</span></td>
+                    <td><strong style="color:#0f172a;">${esc(x.case_id || '—')}</strong></td>
+                    <td>${esc(x.description || '—')}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `;
+    }
+
+    function ref() {
+      app.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+          <h2>📘 Forensic BPA Pattern Classification Standards</h2>
+          <button class="s" onclick="go('dash')">← Dashboard</button>
+        </div>
+        <section>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:220px;">Pattern Classification</th>
+                  <th>Forensic Definition &amp; Mechanism of Formation</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${PAT.map(([n, d]) => `
+                  <tr>
+                    <td><strong style="color:#1e3a8a;">${n}</strong></td>
+                    <td>${d}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+          <div class="info-box" style="margin-top:16px;">
+            <strong>Fundamental Rule:</strong> Impact Angle θ = sin⁻¹(W / L). Angle of impact ≠ Point of convergence (2D) ≠ Area of origin (3D). Direction of travel ≠ Direction of flow.
+          </div>
+        </section>
+      `;
+    }
+
+    // Initialize session
+    api('/api/me').then(u => { me = u; go('dash'); }).catch(() => go('login'));
+  </script>
+</body>
+</html>
