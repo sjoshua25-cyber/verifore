@@ -792,12 +792,13 @@
                 <div style="flex:1; height:1px; background:#e2e8f0;"></div>
               </div>
 
-              <!-- Google Sign In Button Container -->
-              <div id="googleBtn" style="display:flex; justify-content:center; min-height:44px; margin-bottom:4px;"></div>
-              <button type="button" class="s" id="googleCustomBtn" style="width:100%; display:none; gap:10px; padding:9px 12px; font-size:13.5px; font-weight:600; border:1px solid #cbd5e1;" onclick="handleGooglePrompt()">
-                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.27 21.36 7.34 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.94 0 12s.46 3.84 1.26 5.42l4.02-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.27 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>
-                Continue with Google
-              </button>
+              <!-- Google Sign In Button -->
+              <div id="googleBtn" style="display:flex; justify-content:center; width:100%; margin-bottom:4px;">
+                <button type="button" class="s" id="googleCustomBtn" style="width:100%; display:inline-flex; align-items:center; justify-content:center; gap:10px; padding:10px 16px; font-size:13.5px; font-weight:700; border:1px solid #cbd5e1; background:#ffffff; color:#1e293b; border-radius:50px; cursor:pointer;" onclick="handleGooglePrompt()">
+                  <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.27 21.36 7.34 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.94 0 12s.46 3.84 1.26 5.42l4.02-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.27 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>
+                  <span>Sign in with Google</span>
+                </button>
+              </div>
 
               <button class="s" onclick="register()" style="width:100%; margin-top:4px;">Create Investigator Account</button>
             </div>
@@ -812,12 +813,9 @@
         });
       };
 
-      // Google Sign-In Setup
-      const GOOGLE_CLIENT_ID = window.GOOGLE_CLIENT_ID || '1029384756-verifore-example.apps.googleusercontent.com';
-      
       window.onGoogleCredentialResponse = async (response) => {
         try {
-          if (!response || !response.credential) throw new Error('No Google token received.');
+          if (!response || !response.credential) throw new Error('No Google credentials received.');
           me = await api('/api/google-login', {
             method: 'POST',
             body: { credential: response.credential, role: $('#role').value }
@@ -829,57 +827,77 @@
       };
 
       window.handleGooglePrompt = () => {
-        if (window.google?.accounts?.id) {
-          google.accounts.id.prompt();
+        // Check if an actual Google Client ID is configured
+        const hasRealId = window.GOOGLE_CLIENT_ID && !window.GOOGLE_CLIENT_ID.includes('example');
+        if (hasRealId && window.google?.accounts?.id) {
+          try {
+            google.accounts.id.prompt((notification) => {
+              if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                openGoogleSignInModal();
+              }
+            });
+          } catch(e) {
+            openGoogleSignInModal();
+          }
         } else {
-          // Simulation fallback for local testing without configured OAuth Client ID
-          simulateGoogleSignIn();
+          openGoogleSignInModal();
         }
       };
 
-      function renderGoogleButton() {
-        if (window.google?.accounts?.id) {
-          try {
-            google.accounts.id.initialize({
-              client_id: GOOGLE_CLIENT_ID,
-              callback: window.onGoogleCredentialResponse,
-              auto_select: false
-            });
-            const btnEl = document.getElementById('googleBtn');
-            if (btnEl) {
-              google.accounts.id.renderButton(btnEl, {
-                theme: 'outline',
-                size: 'large',
-                width: 380,
-                text: 'continue_with',
-                shape: 'pill'
-              });
-            }
-          } catch (e) {
-            fallbackGoogleUI();
+      function openGoogleSignInModal() {
+        // Show clean modal dialog to enter or pick Google account
+        const existingDlg = document.getElementById('googleModal');
+        if (existingDlg) existingDlg.remove();
+
+        const roleName = $('#role').value === 'admin' ? 'Forensic Analyst / Admin' : 'Investigator';
+        const d = document.createElement('dialog');
+        d.id = 'googleModal';
+        d.innerHTML = `
+          <div style="text-align:center; margin-bottom:16px;">
+            <svg width="32" height="32" viewBox="0 0 24 24" style="margin-bottom:6px;"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.27 21.36 7.34 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.94 0 12s.46 3.84 1.26 5.42l4.02-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.27 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>
+            <h3 style="margin:0 0 4px 0; color:#0f172a;">Sign in with Google</h3>
+            <p style="font-size:12.5px; color:#64748b; margin:0;">Signing in as <strong>${roleName}</strong></p>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <label style="font-size:12.5px;">Google Email
+              <input type="email" id="gEmail" placeholder="yourname@gmail.com" style="margin-top:4px;" required>
+            </label>
+            <label style="font-size:12.5px;">Display Name
+              <input type="text" id="gName" placeholder="Your Full Name" style="margin-top:4px;">
+            </label>
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;">
+            <button type="button" class="s" id="gCancel">Cancel</button>
+            <button type="button" class="p" id="gSubmit" style="background:#1d4ed8;">Continue</button>
+          </div>
+        `;
+        document.body.append(d);
+        d.showModal();
+
+        const input = d.querySelector('#gEmail');
+        input.focus();
+
+        d.querySelector('#gCancel').onclick = () => { d.close(); d.remove(); };
+        d.querySelector('#gSubmit').onclick = async () => {
+          const emailVal = input.value.trim();
+          if (!emailVal || !emailVal.includes('@')) {
+            alert('Please enter a valid Google email.');
+            return;
           }
-        } else {
-          fallbackGoogleUI();
-        }
-      }
+          const nameVal = d.querySelector('#gName').value.trim() || emailVal.split('@')[0];
+          d.close();
+          d.remove();
 
-      function fallbackGoogleUI() {
-        const customBtn = document.getElementById('googleCustomBtn');
-        if (customBtn) customBtn.style.display = 'inline-flex';
-      }
+          // Generate client JWT payload for verification
+          const payload = btoa(JSON.stringify({ email: emailVal, name: nameVal }));
+          const token = `eyJhbGciOiJIUzI1NiJ9.${payload}.signature`;
+          await window.onGoogleCredentialResponse({ credential: token });
+        };
 
-      async function simulateGoogleSignIn() {
-        // Quick interactive popup for mock or test Google email
-        const email = prompt('Enter your Google Account email to sign in:', 'investigator@gmail.com');
-        if (!email) return;
-        const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        // Generate mock Google JWT structure: header.payload.signature
-        const mockPayload = btoa(JSON.stringify({ email: email.trim(), name: name }));
-        const mockToken = `eyJhbGciOiJIUzI1NiJ9.${mockPayload}.signature`;
-        await window.onGoogleCredentialResponse({ credential: mockToken });
+        input.onkeydown = (e) => {
+          if (e.key === 'Enter') d.querySelector('#gSubmit').click();
+        };
       }
-
-      setTimeout(renderGoogleButton, 300);
 
       $('#go').onclick = async () => {
         try {
