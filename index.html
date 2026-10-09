@@ -10,6 +10,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
       --bg: #f1f5f9;
@@ -782,16 +783,23 @@
 
             <div class="err" id="e" role="alert"></div>
 
-            <div style="margin-top:20px; display:flex; flex-direction:column; gap:8px;">
+            <div style="margin-top:16px; display:flex; flex-direction:column; gap:8px;">
               <button class="p" id="go" style="width:100%; padding:10px; font-size:14px;">Sign In</button>
-              <button class="s" onclick="register()" style="width:100%;">Create Investigator Account</button>
-            </div>
+              
+              <div style="display:flex; align-items:center; margin:8px 0; gap:10px;">
+                <div style="flex:1; height:1px; background:#e2e8f0;"></div>
+                <span style="font-size:11.5px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px;">Or Sign In With</span>
+                <div style="flex:1; height:1px; background:#e2e8f0;"></div>
+              </div>
 
-            <div class="credentials-hint">
-              <strong style="color:#0f172a;">Quick Access Credentials:</strong>
-              <div style="margin-top:6px;"><strong>Analyst / Admin:</strong> <code>admin</code> / <code>Admin@123</code></div>
-              <div style="margin-top:3px;"><strong>Analyst / Admin:</strong> <code>superadmin</code> / <code>admin123</code></div>
-              <div style="margin-top:3px;"><strong>Investigator:</strong> <code>demo_user</code> / <code>Demo@123</code></div>
+              <!-- Google Sign In Button Container -->
+              <div id="googleBtn" style="display:flex; justify-content:center; min-height:44px; margin-bottom:4px;"></div>
+              <button type="button" class="s" id="googleCustomBtn" style="width:100%; display:none; gap:10px; padding:9px 12px; font-size:13.5px; font-weight:600; border:1px solid #cbd5e1;" onclick="handleGooglePrompt()">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.27 21.36 7.34 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.94 0 12s.46 3.84 1.26 5.42l4.02-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.27 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>
+                Continue with Google
+              </button>
+
+              <button class="s" onclick="register()" style="width:100%; margin-top:4px;">Create Investigator Account</button>
             </div>
           </div>
         </div>
@@ -803,6 +811,75 @@
           el.classList.toggle('active', el.dataset.role === r);
         });
       };
+
+      // Google Sign-In Setup
+      const GOOGLE_CLIENT_ID = window.GOOGLE_CLIENT_ID || '1029384756-verifore-example.apps.googleusercontent.com';
+      
+      window.onGoogleCredentialResponse = async (response) => {
+        try {
+          if (!response || !response.credential) throw new Error('No Google token received.');
+          me = await api('/api/google-login', {
+            method: 'POST',
+            body: { credential: response.credential, role: $('#role').value }
+          });
+          go('dash');
+        } catch (x) {
+          $('#e').textContent = x.message;
+        }
+      };
+
+      window.handleGooglePrompt = () => {
+        if (window.google?.accounts?.id) {
+          google.accounts.id.prompt();
+        } else {
+          // Simulation fallback for local testing without configured OAuth Client ID
+          simulateGoogleSignIn();
+        }
+      };
+
+      function renderGoogleButton() {
+        if (window.google?.accounts?.id) {
+          try {
+            google.accounts.id.initialize({
+              client_id: GOOGLE_CLIENT_ID,
+              callback: window.onGoogleCredentialResponse,
+              auto_select: false
+            });
+            const btnEl = document.getElementById('googleBtn');
+            if (btnEl) {
+              google.accounts.id.renderButton(btnEl, {
+                theme: 'outline',
+                size: 'large',
+                width: 380,
+                text: 'continue_with',
+                shape: 'pill'
+              });
+            }
+          } catch (e) {
+            fallbackGoogleUI();
+          }
+        } else {
+          fallbackGoogleUI();
+        }
+      }
+
+      function fallbackGoogleUI() {
+        const customBtn = document.getElementById('googleCustomBtn');
+        if (customBtn) customBtn.style.display = 'inline-flex';
+      }
+
+      async function simulateGoogleSignIn() {
+        // Quick interactive popup for mock or test Google email
+        const email = prompt('Enter your Google Account email to sign in:', 'investigator@gmail.com');
+        if (!email) return;
+        const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        // Generate mock Google JWT structure: header.payload.signature
+        const mockPayload = btoa(JSON.stringify({ email: email.trim(), name: name }));
+        const mockToken = `eyJhbGciOiJIUzI1NiJ9.${mockPayload}.signature`;
+        await window.onGoogleCredentialResponse({ credential: mockToken });
+      }
+
+      setTimeout(renderGoogleButton, 300);
 
       $('#go').onclick = async () => {
         try {
