@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: verifore
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 18.20.0
+      - key: SESSION_SECRET
+        generateValue: true
