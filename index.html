@@ -784,7 +784,7 @@
 
             <div style="margin-top:20px; display:flex; flex-direction:column; gap:8px;">
               <button class="p" id="go" style="width:100%; padding:10px; font-size:14px;">Sign In</button>
-              <button class="s" onclick="register()" style="width:100%;">Create Investigator Account</button>
+              <button class="s" onclick="register($('#role').value)" style="width:100%;">Create New Account (Investigator or Analyst)</button>
             </div>
 
             <div class="credentials-hint">
@@ -821,46 +821,101 @@
       };
     }
 
-    function register() {
+    function register(initialRole = 'user') {
       app.innerHTML = `
-        <div class="login-wrapper" style="max-width: 560px;">
+        <div class="login-wrapper" style="max-width: 580px;">
           <div class="login-top-bar">
-            <h1>Register Investigator</h1>
-            <p>Create credentials for forensic evidence upload</p>
+            <h1>Create Account</h1>
+            <p>Register as an Investigator or Forensic Analyst / Admin</p>
           </div>
 
           <div class="login-body">
-            <form id="f" class="grid" style="grid-template-columns: 1fr 1fr;">
-              ${[
-                ['full_name', 'Full Name'],
-                ['email', 'Official Email'],
-                ['mobile', 'Phone Number'],
-                ['username', 'Username'],
-                ['institution', 'Agency / Department'],
-                ['user_type', 'Investigator Title'],
-                ['id_number', 'Badge / ID Number (Optional)']
-              ].map(([k, l]) => `<div><label>${l}</label><input name="${k}" required></div>`).join('')}
-              <div><label>Password</label><input name="password" type="password" required></div>
-              <div><label>Confirm Password</label><input name="c" type="password" required></div>
+            <label>Select Account Role</label>
+            <div class="role-toggle" id="regRoleToggle" style="margin-bottom:16px;">
+              <div class="role-option ${initialRole === 'user' ? 'active' : ''}" data-role="user" onclick="switchRegRole('user')">👤 Investigator</div>
+              <div class="role-option ${initialRole === 'admin' ? 'active' : ''}" data-role="admin" onclick="switchRegRole('admin')">🛡️ Analyst / Admin</div>
+            </div>
+            <input type="hidden" id="regRole" value="${initialRole}">
+
+            <form id="f" class="grid" style="grid-template-columns: 1fr 1fr; gap:12px;">
+              <div style="grid-column: span 2;">
+                <label>Full Name</label>
+                <input name="full_name" placeholder="e.g. Dr. Jane Doe" required>
+              </div>
+              <div>
+                <label>Username</label>
+                <input name="username" placeholder="e.g. jdoe" required>
+              </div>
+              <div>
+                <label>Official Email</label>
+                <input name="email" type="email" placeholder="e.g. jdoe@forensics.org" required>
+              </div>
+              <div>
+                <label>Agency / Institution</label>
+                <input name="institution" placeholder="e.g. State Police Crime Lab" required>
+              </div>
+              <div>
+                <label id="lblUserType">Professional Title</label>
+                <input name="user_type" id="inUserType" placeholder="e.g. Lead Investigator" required>
+              </div>
+              <div>
+                <label>Phone / Mobile</label>
+                <input name="mobile" placeholder="e.g. +1 555-0199">
+              </div>
+              <div>
+                <label>Badge / Employee ID (Optional)</label>
+                <input name="id_number" placeholder="e.g. BADGE-7842">
+              </div>
+              <div>
+                <label>Password (min. 6 characters)</label>
+                <input name="password" type="password" placeholder="Create password" required minlength="6">
+              </div>
+              <div>
+                <label>Confirm Password</label>
+                <input name="c" type="password" placeholder="Re-enter password" required minlength="6">
+              </div>
             </form>
 
             <div class="err" id="e" role="alert"></div>
 
             <div style="margin-top:20px; display:flex; gap:8px;">
-              <button class="p" id="r" style="flex:1;">Submit Registration</button>
-              <button class="s" onclick="login()">Back to Sign In</button>
+              <button class="p" id="r" style="flex:1;">Complete Registration</button>
+              <button class="s" onclick="login($('#regRole').value)">Back to Sign In</button>
             </div>
           </div>
         </div>
       `;
 
+      window.switchRegRole = (r) => {
+        $('#regRole').value = r;
+        document.querySelectorAll('#regRoleToggle .role-option').forEach(el => {
+          el.classList.toggle('active', el.dataset.role === r);
+        });
+        const isAdm = r === 'admin';
+        $('#inUserType').placeholder = isAdm ? 'e.g. Senior BPA Analyst' : 'e.g. Lead Field Investigator';
+      };
+
       $('#r').onclick = async () => {
         const b = Object.fromEntries(new FormData($('#f')));
-        if (b.password !== b.c) return $('#e').textContent = 'Passwords do not match.';
+        b.role = $('#regRole').value;
+        if (!b.full_name || !b.username || !b.email) {
+          return $('#e').textContent = 'Please fill in Name, Username, and Email.';
+        }
+        if (!b.password || b.password.length < 6) {
+          return $('#e').textContent = 'Password must be at least 6 characters.';
+        }
+        if (b.password !== b.c) {
+          return $('#e').textContent = 'Passwords do not match.';
+        }
         try {
-          await api('/api/register', { method: 'POST', body: b });
-          login('user');
+          $('#r').disabled = true;
+          $('#r').textContent = 'Creating Account...';
+          const res = await api('/api/register', { method: 'POST', body: b });
+          alert(`Account successfully created for ${b.username} as ${b.role === 'admin' ? 'Analyst / Admin' : 'Investigator'}! You can now log in.`);
+          login(res.role || b.role);
         } catch (x) {
+          $('#r').disabled = false;
+          $('#r').textContent = 'Complete Registration';
           $('#e').textContent = x.message;
         }
       };

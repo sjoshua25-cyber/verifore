@@ -26,11 +26,15 @@ const getCase=(req,res)=>{const c=db.prepare('SELECT * FROM cases WHERE case_id=
  if(!c||(req.session.user.role!=='admin'&&c.user_id!==req.session.user.id)){res.status(404).json({error:'Case not found.'});return null}return c};
 const parse=c=>({...c,info:JSON.parse(c.info),scene:JSON.parse(c.scene),stains:JSON.parse(c.stains),patterns:JSON.parse(c.patterns),analysis:JSON.parse(c.analysis)});
 app.post('/api/register',(req,res)=>{const b=req.body;
- if(!b.username||!b.full_name||!/^\S+@\S+\.\S+$/.test(b.email||''))return res.status(400).json({error:'Name, username and a valid email are required.'});
- if(!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(b.password||''))return res.status(400).json({error:'Password needs 8+ characters with upper, lower case and a digit.'});
- if(db.prepare('SELECT 1 FROM users WHERE username=?').get(b.username))return res.status(409).json({error:'Username already taken.'});
- db.prepare('INSERT INTO users(username,email,full_name,mobile,institution,user_type,id_number,role,hash)VALUES(?,?,?,?,?,?,?,?,?)').run(b.username,b.email,b.full_name,b.mobile,b.institution,b.user_type,b.id_number,'user',bcrypt.hashSync(b.password,10));
- log(b.username,'Account created');res.json({ok:true})});
+ if(!b.username||!b.full_name||!/^\S+@\S+\.\S+$/.test(b.email||''))return res.status(400).json({error:'Full name, username, and a valid email are required.'});
+ if(!b.password||b.password.length<6)return res.status(400).json({error:'Password must be at least 6 characters long.'});
+ if(db.prepare('SELECT 1 FROM users WHERE username=?').get(b.username))return res.status(409).json({error:'Username is already taken. Please choose another.'});
+ if(db.prepare('SELECT 1 FROM users WHERE email=?').get(b.email))return res.status(409).json({error:'An account with this email already exists.'});
+ const targetRole=b.role==='admin'?'admin':'user';
+ const targetType=targetRole==='admin'?(b.user_type||'Forensic Analyst'):(b.user_type||'Investigator');
+ db.prepare('INSERT INTO users(username,email,full_name,mobile,institution,user_type,id_number,role,hash)VALUES(?,?,?,?,?,?,?,?,?)')
+   .run(b.username,b.email,b.full_name,b.mobile||'',b.institution||'Forensic Agency',targetType,b.id_number||'',targetRole,bcrypt.hashSync(b.password,10));
+ log(b.username,`Account created (${targetRole})`);res.json({ok:true,role:targetRole})});
 app.post('/api/login',(req,res)=>{const{username,password,role}=req.body;
  const u=db.prepare('SELECT * FROM users WHERE (username=? OR email=?) AND role=?').get(username,username,role);
  if(!u||!bcrypt.compareSync(password||'',u.hash))return res.status(401).json({error:'Invalid credentials for the selected role.'});
