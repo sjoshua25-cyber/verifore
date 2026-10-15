@@ -35,30 +35,6 @@ app.post('/api/login',(req,res)=>{const{username,password,role}=req.body;
  const u=db.prepare('SELECT * FROM users WHERE (username=? OR email=?) AND role=?').get(username,username,role);
  if(!u||!bcrypt.compareSync(password||'',u.hash))return res.status(401).json({error:'Invalid credentials for the selected role.'});
  req.session.regenerate(()=>{req.session.user={id:u.id,username:u.username,role:u.role,name:u.full_name};log(u.username,'Login');res.json(req.session.user)})});
-app.post('/api/google-login',(req,res)=>{const{credential,role}=req.body;
- if(!credential)return res.status(400).json({error:'Missing Google credential token.'});
- try{
-  const parts=credential.split('.');
-  if(parts.length!==3)throw new Error('Malformed token');
-  const payload=JSON.parse(Buffer.from(parts[1],'base64url').toString('utf8'));
-  const email=payload.email,name=payload.name||payload.email.split('@')[0];
-  if(!email)return res.status(400).json({error:'Google account must include email.'});
-  const assignedRole=role==='admin'?'admin':'user';
-  let u=db.prepare('SELECT * FROM users WHERE email=?').get(email);
-  if(!u){
-   const username=email.split('@')[0]+'_'+Math.floor(Math.random()*1000);
-   db.prepare('INSERT INTO users(username,email,full_name,institution,user_type,role,hash)VALUES(?,?,?,?,?,?,?)')
-     .run(username,email,name,'Google Verified Account',assignedRole==='admin'?'Analyst':'Investigator',assignedRole,bcrypt.hashSync(crypto.randomUUID(),10));
-   u=db.prepare('SELECT * FROM users WHERE email=?').get(email);
-   log(u.username,'Google account auto-created');
-  } else if(assignedRole==='admin'&&u.role!=='admin'){
-   // Admin login requires admin role
-   return res.status(403).json({error:'This Google account is registered as a regular User. Please choose Investigator or contact Administrator.'});
-  }
-  req.session.regenerate(()=>{req.session.user={id:u.id,username:u.username,role:u.role,name:u.full_name};log(u.username,'Google Login');res.json(req.session.user)});
- }catch(err){
-  return res.status(400).json({error:'Failed to process Google sign in token.'});
- }});
 app.post('/api/logout',(req,res)=>req.session.destroy(()=>res.json({ok:true})));
 app.get('/api/me',auth,(req,res)=>res.json(req.session.user));
 app.get('/api/cases',auth,(req,res)=>{const a=req.session.user.role==='admin';
